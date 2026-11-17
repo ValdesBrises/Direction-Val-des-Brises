@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Se rendre à... — Guide vidéo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #FBF9F5;
+    --surface: #FFFFFF;
+    --ink: #23302E;
+    --ink-soft: #5B6B68;
+    --line: #DFE3DE;
+    --rc: #3D5A80;
+    --e2: #3B7A72;
+    --e3: #A5762F;
+    --e4: #7A4B6E;
+    --focus: #1E4B45;
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #171B1A; --surface: #202523; --ink: #EDEFEC; --ink-soft: #AAB3B0; --line: #333A38;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #171B1A; --surface: #202523; --ink: #EDEFEC; --ink-soft: #AAB3B0; --line: #333A38;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); font-size: 125%; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: 'Atkinson Hyperlegible', system-ui, sans-serif;
+    font-size: 18px; line-height: 1.5;
+  }
+  header {
+    padding: 28px 20px 16px; max-width: 720px; margin: 0 auto;
+  }
+  h1 { font-size: 1.6rem; margin: 0 0 4px; font-weight: 700; }
+  header p { margin: 0; color: var(--ink-soft); }
+  .floors {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 4px 20px 20px; max-width: 720px; margin: 0 auto;
+  }
+  .floor-btn {
+    padding: 18px 8px; border-radius: 12px; border: 4px solid transparent;
+    font-family: inherit; font-size: 1rem; font-weight: 700; cursor: pointer; color: #fff;
+  }
+  .current { font-size: 1.3rem; font-weight: 700; margin: 0 0 16px; }
+  .floor-btn[data-floor="rc"] { background: var(--rc); }
+  .floor-btn[data-floor="e2"] { background: var(--e2); }
+  .floor-btn[data-floor="e3"] { background: var(--e3); }
+  .floor-btn[data-floor="e4"] { background: var(--e4); }
+  .floor-btn.names { grid-column: 1 / -1; background: var(--surface); color: var(--ink); border-color: var(--line); }
+  .floor-btn.active { border-color: var(--ink); }
+  .floor-btn:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+  main { max-width: 720px; margin: 0 auto; padding: 0 20px 40px; }
+  section.group { margin-bottom: 24px; }
+  .group h2 {
+    font-size: 1rem; color: var(--ink-soft); font-weight: 700; margin: 0 0 10px;
+    border-bottom: 1px solid var(--line); padding-bottom: 6px;
+  }
+  .items { display: flex; flex-direction: column; gap: 8px; }
+  .item-btn {
+    text-align: left; padding: 16px 18px; border-radius: 10px; border: 1px solid var(--line);
+    background: var(--surface); color: var(--ink); font-family: inherit; font-size: 1.05rem;
+    font-weight: 700; cursor: pointer; display: flex; justify-content: space-between; align-items: center;
+    gap: 12px; text-decoration: none; min-height: 64px;
+  }
+  .item-btn:hover { border-color: var(--ink-soft); }
+  .item-btn:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+  .item-btn .arrow { color: var(--ink-soft); font-weight: 400; white-space: nowrap; }
+  .item-btn.pending { opacity: 0.55; cursor: default; }
+  .item-btn.pending .arrow { font-size: 0.85rem; font-weight: 700; }
+  dialog {
+    border: none; border-radius: 14px; padding: 0; width: min(94vw, 480px);
+    background: var(--surface); color: var(--ink);
+  }
+  dialog::backdrop { background: rgba(0,0,0,0.7); }
+  .dialog-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 14px 16px; }
+  .dialog-head h3 { margin: 0; font-size: 1.1rem; }
+  .close-btn {
+    border: 2px solid var(--ink); background: var(--surface); color: var(--ink); border-radius: 10px;
+    font-family: inherit; font-size: 1rem; font-weight: 700; padding: 10px 16px; cursor: pointer; white-space: nowrap;
+  }
+  .video-wrap { aspect-ratio: 9 / 16; max-height: 75vh; margin: 0 auto; background: #000; }
+  .video-wrap iframe { width: 100%; height: 100%; border: 0; display: block; }
+  @media (prefers-reduced-motion: no-preference) {
+    .item-btn { transition: border-color .15s ease; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Se rendre à...</h1>
+  <p>1. Touchez l'étage, ou « Chercher par nom ». 2. Touchez l'endroit. La vidéo du trajet s'ouvrira.</p>
+</header>
+
+<nav class="floors" id="floorNav"></nav>
+<main id="content"></main>
+
+<dialog id="videoDialog">
+  <div class="dialog-head">
+    <h3 id="dialogTitle"></h3>
+    <button class="close-btn" id="closeDialog">✕ Fermer</button>
+  </div>
+  <div class="video-wrap" id="dialogBody"></div>
+</dialog>
+<script>
+// ---- DONNÉES : à compléter (nom réel + id de vidéo YouTube) ----
+// videoId: null => affiche "vidéo à venir". Remplacer par l'ID de la vidéo
+// (la partie après "v=" dans le lien YouTube), ex: "dQw4w9WgXcQ"
+const floors = [
+  {
+    key: "rc", label: "Rez-de-chaussée", color: "var(--rc)",
+    nord: ["A", "B"], sud: ["E", "F"],
+    salons: ["Nord", "Sud"],
+    terrasses: ["Plaza", "Nord", "Sud"]
+  },
+  {
+    key: "e2", label: "2e étage", color: "var(--e2)",
+    nord: ["A", "B", "C"], sud: ["D", "E", "F"],
+    salons: ["Nord", "Sud"],
+    terrasses: ["2e étage"]
+  },
+  {
+    key: "e3", label: "3e étage", color: "var(--e3)",
+    nord: ["A", "B", "C"], sud: ["D", "E", "F"],
+    salons: ["Nord", "Sud"],
+    terrasses: []
+  },
+  {
+    key: "e4", label: "4e étage", color: "var(--e4)",
+    nord: ["A", "B", "C"], sud: ["D", "E", "F"],
+    salons: ["Nord", "Sud"],
+    terrasses: []
+  }
+];
+
+// id => { name, videoId } — à remplir avec les vrais noms + liens
+const details = {
+  "rc-mais-A": { name: "Maisonnée A Agathes (Nord)", videoId: "Z9oWIrH_2TI" },
+  "rc-mais-B": { name: "Maisonnée B Bronze (Nord)", videoId: "60viIa9EsxI" },
+  "rc-mais-E": { name: "Maisonnée E Émeraudes (Sud)", videoId: "-ErPnAHmNeQ" },
+  "rc-mais-F": { name: "Maisonnée F Forge (Sud)", videoId: "UfBHk2SjtAA" },
+
+  "e2-mais-A": { name: "Maisonnée A Anémones (Nord)", videoId: "dhxv-LBWgVE" },
+  "e2-mais-B": { name: "Maisonnée B Bégonias (Nord)", videoId: "9xxH1FGtwzI" },
+  "e2-mais-C": { name: "Maisonnée C Coquelicot (Nord)", videoId: "JKM9IiyNLXA" },
+  "e2-mais-D": { name: "Maisonnée D Dahlia (Sud)", videoId: "7rZ0ZYRpTSk" },
+  "e2-mais-E": { name: "Maisonnée E Échinacée (Sud)", videoId: "K_VrouF1D7U" },
+  "e2-mais-F": { name: "Maisonnée F Féconias (Sud)", videoId: "p192TU4DMuQ" },
+
+  "e3-mais-A": { name: "Maisonnée A Acajou (Nord)", videoId: "4qOoQuwK8V4" },
+  "e3-mais-B": { name: "Maisonnée B Bouleau (Nord)", videoId: "NQGsT6chFh4" },
+  "e3-mais-C": { name: "Maisonnée C Cèdres (Nord)", videoId: "PZecxB0r57Q" },
+  "e3-mais-D": { name: "Maisonnée D Dattiers (Sud)", videoId: "Ot4zq9BCx5M" },
+  "e3-mais-E": { name: "Maisonnée E Érables (Sud)", videoId: "MziMgGwwOVU" },
+  "e3-mais-F": { name: "Maisonnée F Frênes (Sud)", videoId: "jpaFqCAZsKs" },
+
+  "e4-mais-A": { name: "Maisonnée A Alouettes (Nord)", videoId: "qn7a-beqCBk" },
+  "e4-mais-B": { name: "Maisonnée B Bernaches (Nord)", videoId: "yBtiur9JWec" },
+  "e4-mais-C": { name: "Maisonnée C Colibris (Nord)", videoId: "oLB4vZqxgxg" },
+  "e4-mais-D": { name: "Maisonnée D Ducs-Grand (Sud)", videoId: "Zzcj8Rri4Rs" },
+  "e4-mais-E": { name: "Maisonnée E Éperviers (Sud)", videoId: "qLP4cS34DGs" },
+  "e4-mais-F": { name: "Maisonnée F Faisans (Sud)", videoId: "mVqtwp3gWqQ" },
+
+  "e2-terr-2e étage": { videoId: "K6yfRSuI5Ug" },
+  "rc-terr-Plaza": { videoId: "tc4m6ZQAExI" },
+  "rc-terr-Sud": { videoId: "NM7-_WaeVmU" },
+  "rc-terr-Nord": { videoId: "J7stTV7iTUQ" },
+
+  "rc-salon-Nord": { name: "Salle de l'Orée (Salon familial Nord)", videoId: "fwBoNWQXRvs" },
+  "rc-salon-Sud": { videoId: "L36ibf_zhhI" },
+  "e2-salon-Nord": { videoId: "Xwgx0RUR-Gc" },
+  "e2-salon-Sud": { videoId: "oLMCetm9GDA" },
+  "e3-salon-Nord": { videoId: "h_pL-PBMO78" },
+  "e3-salon-Sud": { videoId: "FHcROextZq0" },
+  "e4-salon-Nord": { videoId: "--zJhXA6IEE" },
+  "e4-salon-Sud": { videoId: "KJielW0mIWs" }
+};
+
+function buildItems(floor) {
+  const items = [];
+  floor.nord.forEach(l => items.push({ id: `${floor.key}-mais-${l}`, group: "Maisonnées", label: `Maisonnée ${l} (Nord)` }));
+  floor.sud.forEach(l => items.push({ id: `${floor.key}-mais-${l}`, group: "Maisonnées", label: `Maisonnée ${l} (Sud)` }));
+  floor.salons.forEach(s => items.push({ id: `${floor.key}-salon-${s}`, group: "Salons familiaux", label: `Salon familial ${s}` }));
+  floor.terrasses.forEach(t => items.push({ id: `${floor.key}-terr-${t}`, group: "Terrasses", label: `Terrasse ${t}` }));
+  return items;
+}
+
+const nav = document.getElementById("floorNav");
+const content = document.getElementById("content");
+
+let activeFloor = floors[0].key;
+
+function renderNav() {
+  nav.innerHTML = "";
+  floors.forEach(f => {
+    const btn = document.createElement("button");
+    btn.className = "floor-btn" + (f.key === activeFloor ? " active" : "");
+    btn.dataset.floor = f.key;
+    btn.textContent = f.label;
+    btn.onclick = () => { activeFloor = f.key; renderNav(); renderContent(); };
+    nav.appendChild(btn);
+  });
+  const byName = document.createElement("button");
+  byName.className = "floor-btn names" + (activeFloor === "noms" ? " active" : "");
+  byName.textContent = "Chercher par nom (A à Z)";
+  byName.onclick = () => { activeFloor = "noms"; renderNav(); renderContent(); };
+  nav.appendChild(byName);
+  const tour = document.createElement("button");
+  tour.className = "floor-btn names" + (activeFloor === "360" ? " active" : "");
+  tour.textContent = "Visite virtuelle 360°";
+  tour.onclick = () => { activeFloor = "360"; renderNav(); renderContent(); };
+  nav.appendChild(tour);
+}
+
+// Sur GitHub Pages, la vidéo joue dans la page; ailleurs (aperçu Claude), elle s'ouvre dans YouTube
+// car les vidéos intégrées y sont bloquées. "?embed" force le mode intégré pour tester.
+const EMBED = location.hostname.endsWith("github.io") || location.search.includes("embed");
+const dialog = document.getElementById("videoDialog");
+const dialogBody = document.getElementById("dialogBody");
+document.getElementById("closeDialog").onclick = () => dialog.close();
+dialog.addEventListener("close", () => { dialogBody.innerHTML = ""; }); // arrête la vidéo
+
+function openVideo(videoId, name) {
+  document.getElementById("dialogTitle").textContent = name;
+  dialogBody.innerHTML = `<iframe src="https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&rel=0&playsinline=1" title="${name}" allow="autoplay; encrypted-media; fullscreen" allowfullscreen></iframe>`;
+  dialog.showModal();
+}
+
+function makeItem(id, name) {
+  const d = details[id];
+  const hasVideo = d && d.videoId;
+  const el = document.createElement(hasVideo && !EMBED ? "a" : "button");
+  el.className = "item-btn" + (hasVideo ? "" : " pending");
+  if (hasVideo && EMBED) {
+    el.onclick = () => openVideo(d.videoId, name);
+    el.innerHTML = `<span>${name}</span><span class="arrow">▶ Voir le trajet</span>`;
+  } else if (hasVideo) {
+    el.href = `https://youtu.be/${d.videoId}`;
+    el.target = "_blank";
+    el.rel = "noopener";
+    el.innerHTML = `<span>${name}</span><span class="arrow">▶ Voir le trajet</span>`;
+  } else {
+    el.disabled = true;
+    el.innerHTML = `<span>${name}</span><span class="arrow">Vidéo à venir</span>`;
+  }
+  return el;
+}
+
+// Toutes les maisonnées, triées par nom (ex. "Acajou — 3e étage, maisonnée A")
+function renderNames() {
+  const rows = floors.reduce((acc, f) => {
+    [...f.nord, ...f.sud].forEach(l => {
+      const id = `${f.key}-mais-${l}`;
+      const nom = details[id].name.match(/^Maisonnée \S+ (.+) \(/)[1];
+      acc.push({ id, nom, label: `${nom} — ${f.label}, maisonnée ${l}` });
+    });
+    return acc;
+  }, []).sort((a, b) => a.nom.localeCompare(b.nom, "fr"));
+  content.innerHTML = `<p class="current">Maisonnées de A à Z</p>`;
+  const list = document.createElement("div");
+  list.className = "items";
+  rows.forEach(r => list.appendChild(makeItem(r.id, r.label)));
+  content.appendChild(list);
+}
+
+// Visite 360° (tourmkr) : un lien par lieu, regroupés par endroit
+const T = "https://tourmkr.com/F1HjmttkQN/";
+const tour360 = {
+  "Rez-de-chaussée": [
+    ["Entrée", "42006789p&348.55h&90.75t"],
+    ["Accueil", "42006707p&36.6h&88.93t"],
+    ["Cafétéria", "42006693p&297.5h&90.34t"],
+    ["Café-bistro", "42006712p&24.08h&83.15t"],
+    ["Plaza", "42006729p&195.34h&88.5t"],
+    ["Salon de coiffure", "42006702p&357.38h&76.28t"],
+    ["Salle de recueillement", "42006744p&1.14h&78.67t"],
+    ["Cour", "42006763p&343.53h&88.69t"]
+  ],
+  "2e étage": [
+    ["Terrasse intérieure", "42031699p&84.63h&85.33t"]
+  ],
+  "Pareil à chaque étage": [
+    ["Salon des familles", "42006777p&350.26h&76.37t"],
+    ["Salle à manger", "42006784p&8.44h&87.36t"],
+    ["Salon", "42006785p&291.38h&83.96t"],
+    ["Salle d'activité", "42006786p&10.1h&88.76t"],
+    ["Balcon", "42006783p&134.64h&83.73t"],
+    ["Chambre et salle d'eau privée", "42006787p&355.16h&84.87t"]
+  ]
+};
+
+function renderTour() {
+  content.innerHTML = `<p class="current">Visite virtuelle 360°</p>`;
+  Object.entries(tour360).forEach(([group, places]) => {
+    const section = document.createElement("section");
+    section.className = "group";
+    section.innerHTML = `<h2>${group}</h2><div class="items"></div>`;
+    places.forEach(([name, path]) => {
+      const a = document.createElement("a");
+      a.className = "item-btn";
+      a.href = T + path;
+      a.target = "_blank";
+      a.rel = "noopener";
+      a.innerHTML = `<span>${name}</span><span class="arrow">▶ Voir en 360°</span>`;
+      section.lastChild.appendChild(a);
+    });
+    content.appendChild(section);
+  });
+}
+
+function renderContent() {
+  if (activeFloor === "noms") return renderNames();
+  if (activeFloor === "360") return renderTour();
+  const floor = floors.find(f => f.key === activeFloor);
+  const items = buildItems(floor);
+  const groups = [...new Set(items.map(i => i.group))];
+  content.innerHTML = "";
+  const current = document.createElement("p");
+  current.className = "current";
+  current.textContent = `Vous regardez : ${floor.label}`;
+  content.appendChild(current);
+  groups.forEach(g => {
+    const section = document.createElement("section");
+    section.className = "group";
+    const h2 = document.createElement("h2");
+    h2.textContent = g;
+    const list = document.createElement("div");
+    list.className = "items";
+    items.filter(i => i.group === g).forEach(i => {
+      list.appendChild(makeItem(i.id, (details[i.id] && details[i.id].name) || i.label));
+    });
+    section.appendChild(h2);
+    section.appendChild(list);
+    content.appendChild(section);
+  });
+}
+
+renderNav();
+renderContent();
+</script>
+</body>
+</html>
